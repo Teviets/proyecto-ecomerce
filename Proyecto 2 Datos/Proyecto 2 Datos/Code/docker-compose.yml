@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   db:
-    image: postgres
+    image: postgres:latest
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 040902
-      POSTGRES_DB: ecomerce
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: online_store
     ports:
       - "5432:5432"
 
