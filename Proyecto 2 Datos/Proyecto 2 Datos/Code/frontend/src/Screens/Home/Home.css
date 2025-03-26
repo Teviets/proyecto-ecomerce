@@ -1,0 +1,13 @@
+/* Centrar las imágenes horizontalmente dentro del carrusel */
+.image-container {
+    display: flex;
+    justify-content: center; /* Centra horizontalmente */
+    align-items: center; /* Centra verticalmente si es necesario */
+    height: 100%; /* Asegura que ocupe el tamaño completo del contenedor */
+  }
+  
+  .image-container img {
+    max-width: 100%; /* Asegura que la imagen no se desborde */
+    height: auto; /* Mantiene la relación de aspecto de la imagen */
+  }
+  
