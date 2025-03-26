@@ -11,14 +11,13 @@ const optionsOrder = [
     { label: 'Price High to Low', value: '-price' },
 ]
 
-export default function Filters() {
+export default function Filters(setOrder, setCategory) {
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
         fetch("http://localhost:8000/categories")
             .then(response => response.json())
             .then(data => {
-                console.log(data);
                 // mapear data para que categories tenga el formato label: 'name', value: 'id'
                 const categories = data.map(category => {
                     return {
@@ -35,6 +34,9 @@ export default function Filters() {
         <Autocomplete
           disablePortal
           options={optionsOrder}
+          onChange={(event, newValue) => {
+            setOrder(newValue.value);
+          }}
           sx={{ 
             width: 300,
             bgcolor: "black",
@@ -68,6 +70,9 @@ export default function Filters() {
         <Autocomplete
           disablePortal
           options={categories}
+          onChange={(event, newValue) => {
+            setCategory(newValue.value);
+          }}
           sx={{ 
             width: 300,
             bgcolor: "black",

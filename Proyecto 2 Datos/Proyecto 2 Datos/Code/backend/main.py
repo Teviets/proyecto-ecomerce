@@ -1,5 +1,5 @@
 # backend/main.py
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine, Base
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,8 +32,21 @@ def login_user(user: schemas.UserLogin, db: Session = Depends(get_db)):
     return crud.authenticate_user(db, user)
 
 @app.get("/products")
-def get_products(db: Session = Depends(get_db)):
-    return crud.get_products(db)
+def get_products(
+        skip: int = Query(0, alias="page", ge=0),
+        limit: int = Query(25, alias="size", ge=1, le=100),
+        order: str = Query("id", alias="sort"),
+        name: str = Query(None, alias="name"),
+        category: int = Query(None, alias="category"),
+        db: Session = Depends(get_db)
+    ):
+    data = crud.get_products(db, skip=skip, limit=limit, order=order, category=category, name=name)
+    return {
+        "total": data["count"],
+        "page": skip,
+        "size": limit,
+        "data": data["data"]
+    }
 
 @app.get("/categories")
 def get_categories(db: Session = Depends(get_db)):

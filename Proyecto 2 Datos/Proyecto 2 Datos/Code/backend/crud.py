@@ -23,8 +23,41 @@ def create_product(db: Session, product: schemas.ProductCreate):
     db.refresh(db_product)
     return db_product
 
-def get_products(db: Session):
-    return db.query(models.Product).all()
+def get_products(
+    db: Session, 
+    skip: int = 0, 
+    limit: int = 25, 
+    order: str = "id", 
+    name: str = None,
+    category: int = None
+):
+    query = db.query(models.Product)
+    
+    if name:
+        query = query.filter(models.Product.name.ilike(f"%{name}%"))
+
+    # Filtrar por categoría si se proporciona
+    if category:
+        query = query.filter(models.Product.category_id == category)
+    
+    # Ordenar según el parámetro 'order'
+    if order == "name":
+        query = query.order_by(models.Product.name)
+    elif order == "-name":
+        query = query.order_by(models.Product.name.desc())
+    elif order == "price":
+        query = query.order_by(models.Product.price)
+    elif order == "-price":
+        query = query.order_by(models.Product.price.desc())
+    else:
+        query = query.order_by(models.Product.id)  # Orden por ID por defecto
+
+    # Aplicar paginación
+    products = query.offset(skip * limit).limit(limit).all()
+
+    # count = query.count()
+    count = query.count()
+    return {"data": products, "count": count}
 
 # CRUD functions for Category
 def create_category(db: Session, category: schemas.ProductCategoryCreate):
