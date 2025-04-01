@@ -3,25 +3,70 @@ version: '3.8'
 services:
   db:
     image: postgres:latest
+    container_name: db
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: online_store
     ports:
       - "5432:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d online_store"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    networks:
+      - app-network
+    volumes:
+      - mongo_data:/data/db  # Persistencia de datos
 
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile  # Asegúrate de tener este archivo
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      mongo:
+        condition: service_started
     environment:
       DATABASE_URL: postgresql://user:password@db/online_store
+      # Conexión directa al MongoDB LOCAL (no a Atlas)
+      MONGO_URI: mongodb://root:root@mongo:27017/?authSource=admin
+      # Opcional: Timeout configurado
+      MONGO_CONNECT_TIMEOUT_MS: 30000
     ports:
       - "8000:8000"
+    networks:
+      - app-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Para conexiones externas
 
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     depends_on:
       - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo_data:  # Volumen para persistencia de MongoDB

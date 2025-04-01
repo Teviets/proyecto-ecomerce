@@ -1,0 +1,22 @@
+#cart-container {
+    display: flex;
+    width: 100vw;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 20px;
+    gap: 20px;
+}
+  
+.table-container {
+    width: 60%;  /* Ajustar al 60% del ancho */
+    display: flex;
+    justify-content: center; /* Centrar la tabla dentro del contenedor */
+}
+
+.checkout-button{
+    display: flex;
+    width: 60%;
+    justify-content: right;
+}
+  

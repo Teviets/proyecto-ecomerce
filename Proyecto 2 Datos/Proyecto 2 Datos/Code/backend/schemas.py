@@ -1,5 +1,8 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from pydantic import BaseModel, UUID4
+from typing import Optional
+
 
 # User schema
 class UserBase(BaseModel):
@@ -51,3 +54,18 @@ class CartItem(BaseModel):
 
 class Cart(BaseModel):
     items: List[CartItem] = []
+
+class ProductToCart(BaseModel):
+    id: int
+    name: str
+    price: float
+    category_id: int
+    image_url: str
+    quantity: int
+
+class CartItem(BaseModel):
+    product_id: ProductToCart
+    user_id: int
+    order_id: Optional[UUID4] = None  # Order_id es opcional
+
+

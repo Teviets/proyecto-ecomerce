@@ -1,7 +1,8 @@
 # backend/main.py
 from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from database import SessionLocal, engine, Base
+from database import SessionLocal, engine, Base, mongo_db
+from contextlib import contextmanager
 from fastapi.middleware.cors import CORSMiddleware
 import models, schemas, crud
 
@@ -23,13 +24,17 @@ def get_db():
     finally:
         db.close()
 
+def get_mongo():
+    return mongo_db  # ✅ Devuelve directamente la instancia de MongoDB
+
+
 @app.post("/register")
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db, user)
 
 @app.post("/login")
-def login_user(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    return crud.authenticate_user(db, user)
+def login_user(user: schemas.UserLogin, db: Session = Depends(get_db), mongo_db = Depends(get_mongo) ):
+    return crud.authenticate_user(db, mongo_db,user)
 
 @app.get("/products")
 def get_products(
@@ -55,3 +60,53 @@ def get_categories(db: Session = Depends(get_db)):
 @app.post("/checkout")
 def checkout(cart: schemas.Cart, db: Session = Depends(get_db)):
     return crud.create_order(db, cart)
+
+@app.post("/Cart")
+def add_to_cart(
+    cart_item: schemas.CartItem,
+    mongo_db = Depends(get_mongo) 
+):
+    try:
+
+        order_id = str(cart_item.order_id) if cart_item.order_id else None
+        return crud.add_to_cart(mongo_db, cart_item.product_id, cart_item.user_id, order_id)
+    except Exception as e:
+        print(f"Error adding to cart: {e}")
+        return {"error": str(e)}
+    
+
+@app.get("/Cart")
+def get_full_cart(
+    order_id: str,
+    mongo_db = Depends(get_mongo),
+    db: Session = Depends(get_db)
+):
+    try:
+        return crud.get_full_cart(mongo_db, db, order_id)
+    except Exception as e:
+        print(f"Error getting cart: {e}")
+        return {"error": str(e)}
+"""   
+@app.delete("/Cart")
+def delete_cart(
+    order_id: str,
+    mongo_db = Depends(get_mongo)
+):
+    try:
+        return crud.delete_cart(mongo_db, order_id)
+    except Exception as e:
+        print(f"Error deleting cart: {e}")
+        return {"error": str(e)}
+    
+@app.delete("/Cart/{product_id}")
+def delete_product_from_cart(
+    product_id: int,
+    order_id: str,
+    mongo_db = Depends(get_mongo)
+):
+    try:
+        return crud.delete_product_from_cart(mongo_db, product_id, order_id)
+    except Exception as e:
+        print(f"Error deleting product from cart: {e}")
+        return {"error": str(e)}"
+"""

@@ -4,9 +4,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useAuth } from '../Auth/AuthContext';
 
 import { Link } from 'react-router-dom';
+import {CustomDialog} from '../Dialog/CustomDialog';
 
 export default function Header() {
-    const { loggedIn } = useAuth();
+    const { isAuthenticated, logout } = useAuth();
 
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -32,18 +33,35 @@ export default function Header() {
                         <li className="nav-item">
                             <Link className="nav-link" to="/products">Products</Link>
                         </li>
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/cart">Cart</Link>
-                        </li>
+                        {isAuthenticated && (
+                            <li className="nav-item">
+                                <Link className="nav-link" to="/cart">Cart</Link>
+                            </li>
+                        )}
+                        
                     </ul>
 
                     <ul className="navbar-nav">
-                        <li className="nav-item">
-                            <a className="nav-link" href="#">Login</a>
-                        </li>
-                        <li className="nav-item">
-                            <a className="nav-link btn btn-primary text-white" href="#">Sign Up</a>
-                        </li>
+                    <ul className="navbar-nav">
+                        {isAuthenticated ? (
+                            <li className="nav-item">
+                                <button className="btn btn-danger" onClick={logout}>
+                                    Logout
+                                </button>
+                            </li>
+                        ) : (
+                            <>
+                                <li className="nav-item">
+                                    <CustomDialog isLogin={true} />
+                                </li>
+                                <li className="nav-item">
+                                    <CustomDialog isLogin={false} />
+                                </li>
+                            </>
+                        )}
+                    </ul>
+
+                        
                     </ul>
                 </div>
             </div>

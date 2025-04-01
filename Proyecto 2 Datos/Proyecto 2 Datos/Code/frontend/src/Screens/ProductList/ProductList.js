@@ -42,7 +42,7 @@ export default function ProductList() {
         setProducts(data.data);
         setTotal(Math.ceil(data.total / limit)); // Total de páginas basado en el número total de productos
       });
-  }, [page, order, category, name, limit]);
+  }, [page, order, category, name, limit, page]);
 
   const handleChangePage = (event, value) => {
     setPage(value);
@@ -86,24 +86,24 @@ export default function ProductList() {
       </div>
       <div className='pagination'>
       <Stack spacing={2} sx={{ bgcolor: 'black', padding: 2, borderRadius: '10px' }}>
-  <Pagination 
-    count={total} 
-    page={page}
-    onChange={handleChangePage}
-    sx={{
-      '& .MuiPaginationItem-root': {
-        color: 'white', // Cambia el color de los números
-      },
-      '& .Mui-selected': {
-        backgroundColor: 'gray', // Cambia el color de fondo del elemento seleccionado
-        color: 'white', // Cambia el color del texto del seleccionado
-      },
-      '& .MuiPaginationItem-ellipsis': {
-        color: 'white', // Cambia el color de las elipsis
-      },
-    }}
-  />
-</Stack>
+        <Pagination 
+          count={total} 
+          page={page}
+          onChange={handleChangePage}
+          sx={{
+            '& .MuiPaginationItem-root': {
+              color: 'white', // Cambia el color de los números
+            },
+            '& .Mui-selected': {
+              backgroundColor: 'gray', // Cambia el color de fondo del elemento seleccionado
+              color: 'white', // Cambia el color del texto del seleccionado
+            },
+            '& .MuiPaginationItem-ellipsis': {
+              color: 'white', // Cambia el color de las elipsis
+            },
+          }}
+        />
+      </Stack>
 
       </div>
       

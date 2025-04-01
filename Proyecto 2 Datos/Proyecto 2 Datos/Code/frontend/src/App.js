@@ -27,28 +27,6 @@ function App() {
             .then(data => setCategories(data));
     }, []);
 
-    // return (
-    //     <div>
-    //         <h1>Online Store</h1>
-    //         {!loggedIn ? (
-    //             <Login setLoggedIn={setLoggedIn} />
-    //         ) : (
-    //             <>
-    //                 <select onChange={(e) => setSelectedCategory(e.target.value)}>
-    //                     <option value="">All Categories</option>
-    //                     {categories.map(category => (
-    //                         <option key={category.id} value={category.id}>{category.name}</option>
-    //                     ))}
-    //                 </select>
-    //                 <ul>
-    //                     {products.filter(product => !selectedCategory || product.category_id == selectedCategory).map(product => (
-    //                         <li key={product.id}>{product.name} - ${product.price}</li>
-    //                     ))}
-    //                 </ul>
-    //             </>
-    //         )}
-    //     </div>
-    // );
     return (
         <div>
             <Header />
