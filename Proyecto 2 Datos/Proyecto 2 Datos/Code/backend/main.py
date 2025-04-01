@@ -38,17 +38,17 @@ def login_user(user: schemas.UserLogin, db: Session = Depends(get_db), mongo_db 
 
 @app.get("/products")
 def get_products(
-        skip: int = Query(0, alias="page", ge=0),
-        limit: int = Query(25, alias="size", ge=1, le=100),
-        order: str = Query("id", alias="sort"),
-        name: str = Query(None, alias="name"),
-        category: int = Query(None, alias="category"),
+        page: int = Query(0, ge=0),  # Número de página (0-based)
+        limit: int = Query(25, ge=1, le=100),
+        order: str = Query("id"),
+        name: str = Query(None),
+        category: int = Query(None),
         db: Session = Depends(get_db)
     ):
-    data = crud.get_products(db, skip=skip, limit=limit, order=order, category=category, name=name)
+    data = crud.get_products(db, skip=page, limit=limit, order=order, category=category, name=name)
     return {
         "total": data["count"],
-        "page": skip,
+        "page": page,
         "size": limit,
         "data": data["data"]
     }
@@ -86,6 +86,36 @@ def get_full_cart(
     except Exception as e:
         print(f"Error getting cart: {e}")
         return {"error": str(e)}
+    
+@app.delete("/ItemCart")
+def delete_item_cart(
+    product_id: str = Query(..., description="ID del producto a eliminar"),
+    order_id: str = Query(..., description="ID de la orden"),
+    mongo_db = Depends(get_mongo)
+):
+    try:
+        # Conversión y validación
+        try:
+            product_id_int = int(product_id)
+        except ValueError:
+            raise HTTPException(status_code=422, detail="El product_id debe ser un número válido")
+
+        # Llamada a CRUD
+        result = crud.delete_cart_item(mongo_db, order_id, product_id_int)
+        
+        if not result.get("success"):
+            raise HTTPException(status_code=404, detail=result.get("message", "Producto no encontrado"))
+            
+        return {
+            "success": True,
+            "message": "Producto eliminado correctamente",
+            "deleted_count": result.get("deleted_count", 1)
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
 """   
 @app.delete("/Cart")
 def delete_cart(

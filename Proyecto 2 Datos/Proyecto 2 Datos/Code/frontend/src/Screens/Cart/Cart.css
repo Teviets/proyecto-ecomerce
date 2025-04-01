@@ -19,4 +19,22 @@
     width: 60%;
     justify-content: right;
 }
+
+/* Agrega esto a tu Cart.css */
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+  
+.MuiTableRow-root.deleting {
+    animation: fadeOut 0.3s ease-out;
+}
+
+.deleting {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+  
+  
   

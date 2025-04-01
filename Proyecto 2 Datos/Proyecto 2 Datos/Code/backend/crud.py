@@ -41,7 +41,7 @@ def create_product(db: Session, product: schemas.ProductCreate):
 
 def get_products(
     db: Session, 
-    skip: int = 0, 
+    skip: int = 0,  # Número de página (0-based)
     limit: int = 25, 
     order: str = "id", 
     name: str = None,
@@ -52,11 +52,9 @@ def get_products(
     if name:
         query = query.filter(models.Product.name.ilike(f"%{name}%"))
 
-    # Filtrar por categoría si se proporciona
     if category:
         query = query.filter(models.Product.category_id == category)
     
-    # Ordenar según el parámetro 'order'
     if order == "name":
         query = query.order_by(models.Product.name)
     elif order == "-name":
@@ -66,12 +64,12 @@ def get_products(
     elif order == "-price":
         query = query.order_by(models.Product.price.desc())
     else:
-        query = query.order_by(models.Product.id)  # Orden por ID por defecto
+        query = query.order_by(models.Product.id)
 
-    # Aplicar paginación
-    products = query.offset(skip * limit).limit(limit).all()
+    # Calcular el offset correctamente
+    offset = skip * limit
+    products = query.offset(offset).limit(limit).all()
 
-    # count = query.count()
     count = query.count()
     return {"data": products, "count": count}
 
@@ -143,3 +141,17 @@ def get_full_cart(mongo_db, db: Session, order_id: str):
     except Exception as e:
         print(f"Error retrieving cart: {e}")
         return {"error": str(e)}
+    
+def delete_cart_item(mongo_db, order_id: str, product_id: int):
+    try:
+        result = mongo_db["Cart"].update_one(
+            {"order": order_id},
+            {"$pull": {"products": {"id": product_id}}}
+        )
+        if result.modified_count > 0:
+            # Recalcular el total del carrito aquí si es necesario
+            return {"status": "success", "message": "Product removed from cart"}
+        return {"status": "error", "message": "Product not found in cart"}
+    except Exception as e:
+        raise e
+

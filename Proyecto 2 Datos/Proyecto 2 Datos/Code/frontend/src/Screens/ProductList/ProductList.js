@@ -22,8 +22,8 @@ export default function ProductList() {
   const [limit] = useState(25); 
 
   useEffect(() => {
-    let url = `http://localhost:8000/products?skip=${(page - 1) * limit}&limit=${limit}`;
-
+    let url = `http://localhost:8000/products?page=${page - 1}&limit=${limit}`;
+  
     // Agregar filtros adicionales
     if (order) {
       url += `&order=${order}`;
@@ -34,15 +34,15 @@ export default function ProductList() {
     if (name) {
       url += `&name=${name}`;
     }
-
+  
     fetch(url)
       .then(response => response.json())
       .then(data => {
         console.log(data);
         setProducts(data.data);
-        setTotal(Math.ceil(data.total / limit)); // Total de páginas basado en el número total de productos
+        setTotal(Math.ceil(data.total / limit));
       });
-  }, [page, order, category, name, limit, page]);
+  }, [page, order, category, name, limit]);
 
   const handleChangePage = (event, value) => {
     setPage(value);
