@@ -49,9 +49,6 @@ export function CustomDialog({ isLogin }) {
       
           if (response.ok) {
             const data = await response.json();
-            console.log("Response data:", data); // Verifica la estructura real
-            console.log("Response data:", data.user); // Verifica la estructura real
-            console.log("response order_id:", data["order_id"]); // Verifica la estructura real
             if (!data["order_id"]) {
               data["order_id"] = {
                 order: ''
@@ -69,23 +66,29 @@ export function CustomDialog({ isLogin }) {
           console.error("Error:", error);
           alert("Network error. Please try again.");
         }
-      };
+    };
 
     const handleRegister = async () => {
         try {
+            const payload = {
+                "email": username,
+                "password": password,
+            }
             const response = await fetch("http://localhost:8000/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify(payload),
+                mode: "cors",
             });
-    
+
             if (response.ok) {
-                setLoggedIn(true);
                 handleClose();
             } else {
-                const errorData = await response.json(); // Intentar leer el mensaje de error
+                const errorData = await response.json();
                 alert(errorData.detail || "Registration failed");
             }
+            
+    
         } catch (error) {
             console.error("Error:", error);
             alert("Network error. Please try again.");
@@ -96,7 +99,7 @@ export function CustomDialog({ isLogin }) {
     return (
         <React.Fragment>
             {isLogin ? 
-                <a className="nav-link" onClick={handleClickOpen}>Login</a>:
+                <a className="nav-link btn" onClick={handleClickOpen}>Login</a>:
                 <a className="nav-link btn btn-primary text-white" onClick={handleClickOpen}>Sign Up</a>
             }
         
@@ -190,13 +193,6 @@ export function CustomDialogAddToCart({ product }) {
 
     const { isAuthenticated, id, orderID, login, updateOrderID } = useAuth();
 
-
-    /*useEffect(() => {
-        console.log("isAuthenticated:", isAuthenticated);
-        console.log("id:", id);
-        console.log("orderID:", orderID);
-    }, [isAuthenticated, id, orderID]);*/
-
     const handleTogglePassword = () => {
         setShowPassword(!showPassword);
     };
@@ -219,11 +215,22 @@ export function CustomDialogAddToCart({ product }) {
       
           if (response.ok) {
             const data = await response.json();
+            console.log("data", data);
+            if (!data["order_id"]) {
+              data["order_id"] = {
+                order: ''
+              };
+            }
+            
             login(data.user.username, data.user.id, data["order_id"]["order"]);
-            handleAddtoCart(); 
             handleClose();
+
+            console.log(orderID);
+            console.log(data["order_id"]["order"]);
+            
           } else {
-            alert("Login failed");
+            const errorData = await response.json();
+            alert(errorData.detail || "Login failed");
           }
         } catch (error) {
           console.error("Error:", error);
@@ -239,9 +246,6 @@ export function CustomDialogAddToCart({ product }) {
             user_id: Number(id),
             order_id: orderID || null
         };
-        console.log("Payload:", payload); // Verifica la estructura real
-        console.log("id typeof:", typeof id); // Verifica el tipo de id
-        // Verificar que el ID del producto y usuario sean válidos
 
         // Verificar que el ID del producto, usuario y orden sean válidos
         if (typeof product.id !== 'number' || isNaN(product.id)) {
@@ -253,8 +257,6 @@ export function CustomDialogAddToCart({ product }) {
             alert("Invalid user_id");
             return;
         }
-    
-        console.log("orderID:", orderID); // Verifica el valor de orderID
         
     
         try {
@@ -266,7 +268,7 @@ export function CustomDialogAddToCart({ product }) {
     
             if (response.ok) {
                 const data = await response.json();
-                console.log("Response data:", data); // Verifica la estructura real
+                console.log(data);
                 updateOrderID(data.order_id); // Actualiza el orderID en el contexto
                 handleClose();
             } else {
@@ -414,3 +416,66 @@ export function CustomDialogAddToCart({ product }) {
         </React.Fragment>
     );
 }
+
+/*
+export function CustomDialogFinishCheckOut({ handleFinishCheckout }) {
+    const [open, setOpen] = React.useState(true);
+    const [Message, setMessage] = React.useState("Your order has been placed successfully!");
+
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const finish = async () => {
+        try {
+            handleFinishCheckout();
+            handleClickOpen();
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Network error. Please try again.");
+        }
+    };
+
+    return (
+        <React.Fragment>
+
+            <Button 
+                variant="contained" 
+                onClick={handleFinishCheckout}
+                size={isSmallScreen ? 'small' : 'medium'}
+                fullWidth={isSmallScreen}
+            >
+                Finish Order
+            </Button>
+
+            <Dialog
+                open={open}
+                TransitionComponent={Transition}
+                keepMounted
+                onClose={handleClose}
+                aria-describedby="alert-dialog-slide-description"
+                sx={{
+                    '& .MuiDialog-paper': {
+                        bgcolor: 'black',
+                        color: 'white',
+                    }
+                }}
+            >
+                <DialogTitle sx={{ color: 'white' }}>Finish Checkout</DialogTitle>
+                <DialogContent>
+                    {Message}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} sx={{ color: 'white', bgcolor: 'gray', '&:hover': { bgcolor: 'darkgray' } }}>
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </React.Fragment>
+    );
+}
+    */

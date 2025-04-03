@@ -42,9 +42,6 @@ export function AuthProvider({ children }) {
         const storedID = getCookie('id');
         const stored = getCookie('orderID');
     
-        console.log("Email obtenido de cookies:", storedEmail);
-        console.log("ID obtenido de cookies:", storedID);
-    
         if (storedEmail && storedID && stored) {
             setEmail(storedEmail);
             setID(storedID);

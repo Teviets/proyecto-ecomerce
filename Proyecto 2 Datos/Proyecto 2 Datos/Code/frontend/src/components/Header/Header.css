@@ -1,23 +1,59 @@
-#header-container{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    background-color: #454d55;
-    border-bottom: 1px solid #e9ecef;
+/* Personalización del navbar */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 0;
 }
 
-#menu-header{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+.navbar-brand {
+    font-size: 1.5rem;
+    padding: 0.5rem 0;
 }
 
-#login-header{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+.nav-link {
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Estilos para los botones de login/signup */
+/* Asegurar que el navbar no tenga overflow */
+.navbar {
+    overflow: hidden;
+}
+
+/* Estilos para el menú colapsado en móviles */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        background-color: #343a40; /* Fondo oscuro para el menú desplegable */
+        padding: 1rem;
+        margin-top: 0.5rem;
+        border-radius: 0.25rem;
+    }
+    
+    .navbar-nav {
+        margin-bottom: 1rem;
+    }
+    
+    .nav-item {
+        margin-bottom: 0.5rem;
+    }
+    
+    .navbar-nav .btn {
+        width: 100%;
+    }
+}
+
+/* Ajustes para pantallas muy pequeñas */
+@media (max-width: 575.98px) {
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+    
+    .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
 }

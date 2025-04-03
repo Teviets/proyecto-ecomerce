@@ -1,13 +1,85 @@
-/* Centrar las imágenes horizontalmente dentro del carrusel */
+.swiper-container {
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  position: relative;
+}
+
 .image-container {
-    display: flex;
-    justify-content: center; /* Centra horizontalmente */
-    align-items: center; /* Centra verticalmente si es necesario */
-    height: 100%; /* Asegura que ocupe el tamaño completo del contenedor */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.image-container img {
+  max-width: 100%;
+  height: auto;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para la paginación */
+.swiper-pagination-bullet {
+  background: #fff;
+  opacity: 0.6;
+  width: 10px;
+  height: 10px;
+}
+
+.swiper-pagination-bullet-active {
+  background: #007aff;
+  opacity: 1;
+}
+
+/* Estilos para los botones de navegación */
+.swiper-button-next,
+.swiper-button-prev {
+  color: #007aff;
+  background: rgba(255, 255, 255, 0.7);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 20px;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* Media Queries para diferentes tamaños */
+@media (max-width: 768px) {
+  .image-container img {
+    max-height: 60vh;
+  }
+  
+  .swiper-button-next,
+  .swiper-button-prev {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .image-container {
+    padding: 5px;
   }
   
   .image-container img {
-    max-width: 100%; /* Asegura que la imagen no se desborde */
-    height: auto; /* Mantiene la relación de aspecto de la imagen */
+    max-height: 50vh;
   }
   
+  .swiper-pagination-bullet {
+    width: 8px;
+    height: 8px;
+  }
+}

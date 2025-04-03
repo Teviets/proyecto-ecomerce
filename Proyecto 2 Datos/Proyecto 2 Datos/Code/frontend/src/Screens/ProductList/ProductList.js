@@ -8,8 +8,10 @@ import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
 import Pagination from '@mui/material/Pagination';
 import Stack from '@mui/material/Stack';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 
-import CustomCard from '../../components/CustomCard/CustomCard.js'
+import { CustomCard } from '../../components/CustomCard/CustomCard.js'
 import Filters from '../../components/Filters/Filters.js';
 
 export default function ProductList() {
@@ -19,26 +21,22 @@ export default function ProductList() {
   const [name, setName] = useState(null);
   const [category, setCategory] = useState('');
   const [page, setPage] = useState(1);
-  const [limit] = useState(25); 
+  const [limit] = useState(25);
+  
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMediumScreen = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     let url = `http://localhost:8000/products?page=${page - 1}&limit=${limit}`;
   
-    // Agregar filtros adicionales
-    if (order) {
-      url += `&order=${order}`;
-    }
-    if (category) {
-      url += `&category=${category}`;
-    }
-    if (name) {
-      url += `&name=${name}`;
-    }
+    if (order) url += `&order=${order}`;
+    if (category) url += `&category=${category}`;
+    if (name) url += `&name=${name}`;
   
     fetch(url)
       .then(response => response.json())
       .then(data => {
-        console.log(data);
         setProducts(data.data);
         setTotal(Math.ceil(data.total / limit));
       });
@@ -58,55 +56,83 @@ export default function ProductList() {
               p: '2px 4px', 
               display: 'flex', 
               alignItems: 'center', 
-              width: 400, 
+              width: '100%',
+              maxWidth: 400,
               bgcolor: 'black',
               color: 'white',
             }}
           >
             <InputBase
-              sx={{ ml: 1, flex: 1, color: 'white' }}
+              sx={{ 
+                ml: 1, 
+                flex: 1, 
+                color: 'white',
+                fontSize: isSmallScreen ? '0.9rem' : '1rem'
+              }}
               onChange={(e) => setName(e.target.value)}
               placeholder="Search"
-              inputProps={{ 'aria-label': 'search google maps' }}
+              inputProps={{ 'aria-label': 'search products' }}
             />
-            <IconButton type="button" sx={{ p: '10px', color: 'white' }} aria-label="search">
-              <CiSearch />
+            <IconButton 
+              type="button" 
+              sx={{ 
+                p: '10px', 
+                color: 'white',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' }
+              }} 
+              aria-label="search"
+            >
+              <CiSearch size={isSmallScreen ? 18 : 24} />
             </IconButton>
           </Paper>
         </div>
       </div>
 
       <div className='filter-bar'>
-        <Filters setOrder={setOrder} setCategory={setCategory} />
-      </div>
-      <div className='product-grid'>
-        {products.map(product => (
-          <CustomCard key={product.id} product={product}/>
-        ))}
-      </div>
-      <div className='pagination'>
-      <Stack spacing={2} sx={{ bgcolor: 'black', padding: 2, borderRadius: '10px' }}>
-        <Pagination 
-          count={total} 
-          page={page}
-          onChange={handleChangePage}
-          sx={{
-            '& .MuiPaginationItem-root': {
-              color: 'white', // Cambia el color de los números
-            },
-            '& .Mui-selected': {
-              backgroundColor: 'gray', // Cambia el color de fondo del elemento seleccionado
-              color: 'white', // Cambia el color del texto del seleccionado
-            },
-            '& .MuiPaginationItem-ellipsis': {
-              color: 'white', // Cambia el color de las elipsis
-            },
-          }}
-        />
-      </Stack>
-
+        <Filters setOrder={setOrder} setCategory={setCategory} isMobile={isSmallScreen} />
       </div>
       
+      <div className='product-grid'>
+        {products.map(product => (
+          <CustomCard 
+            key={product.id} 
+            product={product}
+            compact={isMediumScreen}
+          />
+        ))}
+      </div>
+      
+      <div className='pagination'>
+        <Stack 
+          spacing={2} 
+          sx={{ 
+            bgcolor: 'black', 
+            padding: 2, 
+            borderRadius: '10px',
+            width: '100%',
+            maxWidth: isSmallScreen ? '95%' : 'auto'
+          }}
+        >
+          <Pagination 
+            count={total} 
+            page={page}
+            onChange={handleChangePage}
+            size={isSmallScreen ? 'small' : 'medium'}
+            sx={{
+              '& .MuiPaginationItem-root': {
+                color: 'white',
+              },
+              '& .Mui-selected': {
+                backgroundColor: 'gray',
+                color: 'white',
+              },
+              '& .MuiPaginationItem-ellipsis': {
+                color: 'white',
+              },
+            }}
+          />
+        </Stack>
+      </div>
     </div>
   )
 }

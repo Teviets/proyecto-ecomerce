@@ -8,7 +8,7 @@ import IconButton from '@mui/material/IconButton';
 
 import { CustomDialogAddToCart } from '../Dialog/CustomDialog';
 
-export default function CustomCard({ product }) { // Corregí el parámetro para usar destructuración
+export function CustomCard({ product }) { // Corregí el parámetro para usar destructuración
   return (
     <Card sx={{ bgcolor: 'black', color: 'white', borderRadius: '10px' }}>
       <CardHeader

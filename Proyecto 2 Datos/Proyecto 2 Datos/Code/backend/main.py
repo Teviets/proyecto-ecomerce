@@ -25,7 +25,7 @@ def get_db():
         db.close()
 
 def get_mongo():
-    return mongo_db  # ✅ Devuelve directamente la instancia de MongoDB
+    return mongo_db
 
 
 @app.post("/register")
@@ -116,10 +116,10 @@ def delete_item_cart(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
-"""   
+
 @app.delete("/Cart")
 def delete_cart(
-    order_id: str,
+    order_id: str = Query(..., description="ID de la orden"),
     mongo_db = Depends(get_mongo)
 ):
     try:
@@ -128,15 +128,3 @@ def delete_cart(
         print(f"Error deleting cart: {e}")
         return {"error": str(e)}
     
-@app.delete("/Cart/{product_id}")
-def delete_product_from_cart(
-    product_id: int,
-    order_id: str,
-    mongo_db = Depends(get_mongo)
-):
-    try:
-        return crud.delete_product_from_cart(mongo_db, product_id, order_id)
-    except Exception as e:
-        print(f"Error deleting product from cart: {e}")
-        return {"error": str(e)}"
-"""

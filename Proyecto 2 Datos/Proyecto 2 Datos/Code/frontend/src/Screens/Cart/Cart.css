@@ -1,40 +1,115 @@
 #cart-container {
     display: flex;
-    width: 100vw;
+    width: 100%;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     margin-top: 20px;
     gap: 20px;
-}
+    padding: 0 15px;
+    box-sizing: border-box;
+  }
   
-.table-container {
-    width: 60%;  /* Ajustar al 60% del ancho */
-    display: flex;
-    justify-content: center; /* Centrar la tabla dentro del contenedor */
-}
-
-.checkout-button{
-    display: flex;
-    width: 60%;
-    justify-content: right;
-}
-
-/* Agrega esto a tu Cart.css */
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
+  .table-container {
+    width: 100%;
+    max-width: 1200px;
+    overflow-x: auto;
+  }
   
-.MuiTableRow-root.deleting {
+  .checkout-button {
+    display: flex;
+    width: 100%;
+    max-width: 1200px;
+    justify-content: flex-end;
+    padding: 0 15px;
+    margin-bottom: 20px;
+  }
+  
+  /* Animaciones */
+  @keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.95); }
+  }
+  
+  .MuiTableRow-root.deleting {
     animation: fadeOut 0.3s ease-out;
-}
-
-.deleting {
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity 0.3s ease-out;
-}
+  }
   
+  /* Estilos para la tabla responsiva */
+  .MuiTable {
+    min-width: 600px;
+  }
   
+  .MuiTableCell {
+    padding: 12px 8px;
+    word-break: break-word;
+  }
   
+  /* Media Queries para diferentes tamaños */
+  @media (max-width: 1200px) {
+    .table-container, .checkout-button {
+      max-width: 1000px;
+    }
+  }
+  
+  @media (max-width: 992px) {
+    .MuiTableCell {
+      padding: 10px 6px;
+      font-size: 0.9rem;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .table-container {
+      width: 95%;
+    }
+    
+    .MuiTable {
+      min-width: 500px;
+    }
+    
+    .MuiTableCell {
+      padding: 8px 4px;
+      font-size: 0.85rem;
+    }
+    
+    .checkout-button {
+      justify-content: center;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    #cart-container {
+      margin-top: 10px;
+      gap: 10px;
+    }
+    
+    .MuiTable {
+      min-width: 400px;
+    }
+    
+    .MuiTableCell {
+      padding: 6px 3px;
+      font-size: 0.8rem;
+    }
+    
+    .delete-icon {
+      font-size: 1rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .MuiTable {
+      min-width: 350px;
+    }
+    
+    .MuiTableCell {
+      padding: 5px 2px;
+      font-size: 0.75rem;
+    }
+    
+    .btn.btn-danger {
+      padding: 4px;
+      min-width: 30px;
+    }
+  }

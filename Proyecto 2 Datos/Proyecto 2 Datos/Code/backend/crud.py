@@ -2,30 +2,61 @@ from sqlalchemy.orm import Session
 import models, schemas
 import uuid
 from bson import ObjectId
+from sqlalchemy.exc import IntegrityError
 
-# CRUD functions for User
 def create_user(db: Session, user: schemas.UserCreate):
-    db_user = models.User(username=user.username, password=user.password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    # Verifica si el usuario ya existe
+    existing_user = db.query(models.User).filter(models.User.username == user.email).first()
+    
+    if existing_user:
+        return {"error": "El usuario ya existe"}
+    
+    # Crea el nuevo usuario
+    db_user = models.User(username=user.email, password=user.password)
+
+    try:
+        db.add(db_user)
+        print(f"User to be added: {db_user}")
+        db.commit()
+        print(f"User added: {db_user}")
+        db.refresh(db_user)
+        print(f"User refreshed: {db_user}")
+        return db_user
+    except IntegrityError:
+        db.rollback()
+        print("IntegrityError: El usuario ya existe")
+        return {"error": "Error de integridad. El usuario ya existe."}
+    except Exception as e:
+        db.rollback()
+        print(f"Error al agregar el usuario: {e}")
+        return {"error": str(e)}
+
+        
 
 from bson import ObjectId
 
 def authenticate_user(db: Session, mongo_db, user: schemas.UserLogin):
-    response = db.query(models.User).filter(models.User.username == user.username, models.User.password == user.password).first()
+    response = db.query(models.User).filter(
+        models.User.username == user.username, 
+        models.User.password == user.password
+    ).first()
+
+    if not response:
+        return {"error": "Invalid username or password"}
+
     order = mongo_db["Cart"].find_one({"user_id": response.id})
-    
+    print(order)
+
     # Si existe una orden, convertir el _id de ObjectId a string
     if order and "_id" in order:
         order["_id"] = str(order["_id"])
 
     finalResponse = {
         "user": response,
-        "order_id": order  # Ahora el _id es serializable
+        "order": order  # Ahora el _id es serializable
     }
     return finalResponse
+
 
 
 def get_user(db: Session, user_id: int):
@@ -87,28 +118,28 @@ def get_categories(db: Session):
 def add_to_cart(mongo_db, product_id: schemas.ProductToCart, user_id: int, order_id: str = None):
     try:
         order_id = order_id or str(uuid.uuid4())
+        print(f"Order ID: {order_id}")
 
         # Convertir el objeto ProductToCart en diccionario
         product_dict = product_id.model_dump()  # O usa .dict() en Pydantic v1
+        print(f"Product dict: {product_dict}")
 
         # Buscar si ya existe un carrito activo para este usuario y orden
         cart = mongo_db["Cart"].find_one({"order": order_id, "user_id": user_id})
+        print(f"Cart found: {cart}")
 
         if cart:
-            print("Cart already exists, updating...")
+            
             mongo_db["Cart"].update_one(
                 {"order": order_id, "user_id": user_id},
                 {"$addToSet": {"products": product_dict}}  # Evita duplicados
             )
         else:
-            print("Creating new cart...")
             mongo_db["Cart"].insert_one({
                 "order": order_id,
                 "user_id": user_id,
                 "products": [product_dict]  # Lista con diccionarios en lugar de objetos Pydantic
             })
-
-        print("Product added to cart successfully")
 
         return {"order_id": order_id, "user_id": user_id, "added_product": product_dict}
     
@@ -119,13 +150,11 @@ def add_to_cart(mongo_db, product_id: schemas.ProductToCart, user_id: int, order
     
 def get_full_cart(mongo_db, db: Session, order_id: str):
     try:
-        print(f"Buscando carrito para order_id: {order_id}")
         cart = mongo_db.Cart.find_one({"order": order_id})
 
         if not cart:
             return {"error": "Cart not found"}
 
-        print(f"Carrito encontrado: {cart}")
 
         # Convertir `_id` de MongoDB a string
         cart["_id"] = str(cart["_id"])
@@ -135,7 +164,6 @@ def get_full_cart(mongo_db, db: Session, order_id: str):
             sum += product["price"] * product["quantity"]
             product["summary"] = product["price"] * product["quantity"]
         cart["total"] = sum
-        print(f"Total del carrito: {cart}")
         return cart
 
     except Exception as e:
@@ -152,6 +180,20 @@ def delete_cart_item(mongo_db, order_id: str, product_id: int):
             # Recalcular el total del carrito aquí si es necesario
             return {"status": "success", "message": "Product removed from cart"}
         return {"status": "error", "message": "Product not found in cart"}
+    except Exception as e:
+        raise e
+    
+def delete_cart(mongo_db, order_id: str):
+    try:
+        result = mongo_db["Cart"].update_one(
+            {"order": order_id},
+            {"$set": {"products": []}}  # Corregido el operador de actualización
+        )
+        return {
+            "status": "success" if result.modified_count > 0 else "error",
+            "message": "Carrito vaciado" if result.modified_count > 0 else "No se modificó el carrito",
+            "modified_count": result.modified_count
+        }
     except Exception as e:
         raise e
 

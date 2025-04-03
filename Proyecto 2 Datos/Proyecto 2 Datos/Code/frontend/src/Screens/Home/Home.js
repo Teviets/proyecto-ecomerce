@@ -1,9 +1,10 @@
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay } from 'swiper/modules'; // Importa el módulo Autoplay
+import { Autoplay, Navigation, Pagination } from 'swiper/modules';
 import 'swiper/css';
-import 'swiper/css/autoplay'; // Estilos adicionales para Autoplay
-
+import 'swiper/css/autoplay';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 import './Home.css';
 
 import image1 from '../../assets/images/1.png';
@@ -12,31 +13,46 @@ import image3 from '../../assets/images/3.png';
 
 export default function Home() {
   return (
-    <div>
+    <div className="swiper-container">
       <Swiper 
-        spaceBetween={50} 
+        spaceBetween={30}
         slidesPerView={1}
-        loop={true} // Permite que el carrusel sea infinito
+        loop={true}
         autoplay={{
-          delay: 3000, // Cambia de slide cada 3 segundos (3000 ms)
-          disableOnInteraction: false, // Continúa el autoplay después de interacción manual
-          pauseOnMouseEnter: false // Pausa al pasar el mouse
+          delay: 3000,
+          disableOnInteraction: false,
+          pauseOnMouseEnter: true
         }}
-        modules={[Autoplay]} // Registra el módulo Autoplay
+        pagination={{
+          clickable: true,
+          dynamicBullets: true
+        }}
+        navigation={true}
+        modules={[Autoplay, Pagination, Navigation]}
+        breakpoints={{
+          // Cuando el ancho es >= 640px
+          640: {
+            spaceBetween: 40
+          },
+          // Cuando el ancho es >= 1024px
+          1024: {
+            spaceBetween: 50
+          }
+        }}
       >
         <SwiperSlide>
           <div className="image-container">
-            <img src={image1} alt="Image 1" />
+            <img src={image1} alt="Promoción 1" loading="lazy" />
           </div>
         </SwiperSlide>
         <SwiperSlide>
           <div className="image-container">
-            <img src={image2} alt="Image 2" />
+            <img src={image2} alt="Promoción 2" loading="lazy" />
           </div>
         </SwiperSlide>
         <SwiperSlide>
           <div className="image-container">
-            <img src={image3} alt="Image 3" />
+            <img src={image3} alt="Promoción 3" loading="lazy" />
           </div>
         </SwiperSlide>
       </Swiper>

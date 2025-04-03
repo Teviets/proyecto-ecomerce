@@ -29,12 +29,12 @@ services:
     networks:
       - app-network
     volumes:
-      - mongo_data:/data/db  # Persistencia de datos
+      - mongo_data:/data/db 
 
   backend:
     build: 
       context: ./backend
-      dockerfile: Dockerfile  # Asegúrate de tener este archivo
+      dockerfile: Dockerfile
     depends_on:
       db:
         condition: service_healthy
@@ -42,16 +42,14 @@ services:
         condition: service_started
     environment:
       DATABASE_URL: postgresql://user:password@db/online_store
-      # Conexión directa al MongoDB LOCAL (no a Atlas)
       MONGO_URI: mongodb://root:root@mongo:27017/?authSource=admin
-      # Opcional: Timeout configurado
       MONGO_CONNECT_TIMEOUT_MS: 30000
     ports:
       - "8000:8000"
     networks:
       - app-network
     extra_hosts:
-      - "host.docker.internal:host-gateway"  # Para conexiones externas
+      - "host.docker.internal:host-gateway"
 
   frontend:
     build: 
