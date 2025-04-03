@@ -11,7 +11,7 @@ const optionsOrder = [
     { label: 'Price High to Low', value: '-price' },
 ]
 
-export default function Filters(setOrder, setCategory) {
+export default function Filters({setOrder, setCategory}) {
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
