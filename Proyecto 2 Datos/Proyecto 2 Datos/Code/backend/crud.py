@@ -31,9 +31,6 @@ def create_user(db: Session, user: schemas.UserCreate):
         print(f"Error al agregar el usuario: {e}")
         return {"error": str(e)}
 
-        
-
-from bson import ObjectId
 
 def authenticate_user(db: Session, mongo_db, user: schemas.UserLogin):
     response = db.query(models.User).filter(
@@ -86,20 +83,14 @@ def get_products(
     if category:
         query = query.filter(models.Product.category_id == category)
     
-    if order == "name":
-        query = query.order_by(models.Product.name)
-    elif order == "-name":
-        query = query.order_by(models.Product.name.desc())
-    elif order == "price":
-        query = query.order_by(models.Product.price)
-    elif order == "-price":
-        query = query.order_by(models.Product.price.desc())
-    else:
-        query = query.order_by(models.Product.id)
+    order_column = {
+        "name": models.Product.name,
+        "-name": models.Product.name.desc(),
+        "price": models.Product.price,
+        "-price": models.Product.price.desc(),
+    }.get(order, models.Product.id)
 
-    # Calcular el offset correctamente
-    offset = skip * limit
-    products = query.offset(offset).limit(limit).all()
+    products = query.order_by(order_column).offset(skip * limit).limit(limit).all()
 
     count = query.count()
     return {"data": products, "count": count}
