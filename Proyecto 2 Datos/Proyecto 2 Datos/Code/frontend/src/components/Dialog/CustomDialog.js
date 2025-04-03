@@ -409,7 +409,7 @@ export function CustomDialogAddToCart({ product }) {
                         Cancel
                     </Button>
                     <Button onClick={isAuthenticated ? handleAddtoCart: handleLogin} sx={{ color: 'black', bgcolor: 'white', '&:hover': { bgcolor: 'lightgray' } }}>
-                        {isAuthenticated ? 'Close': 'Login'}
+                        {isAuthenticated ? 'Add to cart': 'Login'}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -417,10 +417,10 @@ export function CustomDialogAddToCart({ product }) {
     );
 }
 
-/*
-export function CustomDialogFinishCheckOut({ handleFinishCheckout }) {
-    const [open, setOpen] = React.useState(true);
-    const [Message, setMessage] = React.useState("Your order has been placed successfully!");
+
+export function CustomDialogFinishCheckOut({ handleCheckout, Message }) {
+    const [open, setOpen] = React.useState(false);
+    const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 600);
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -431,27 +431,23 @@ export function CustomDialogFinishCheckOut({ handleFinishCheckout }) {
     };
 
     const finish = async () => {
-        try {
-            handleFinishCheckout();
+        
+        handleCheckout();
+        setTimeout(() => {
             handleClickOpen();
-        } catch (error) {
-            console.error("Error:", error);
-            alert("Network error. Please try again.");
-        }
-    };
+        }, 500);
+    }
 
     return (
         <React.Fragment>
-
             <Button 
                 variant="contained" 
-                onClick={handleFinishCheckout}
+                onClick={finish}
                 size={isSmallScreen ? 'small' : 'medium'}
                 fullWidth={isSmallScreen}
             >
                 Finish Order
             </Button>
-
             <Dialog
                 open={open}
                 TransitionComponent={Transition}
@@ -465,9 +461,9 @@ export function CustomDialogFinishCheckOut({ handleFinishCheckout }) {
                     }
                 }}
             >
-                <DialogTitle sx={{ color: 'white' }}>Finish Checkout</DialogTitle>
+                <DialogTitle sx={{ color: 'white' }}> {Message.title} </DialogTitle>
                 <DialogContent>
-                    {Message}
+                    {Message.Message}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose} sx={{ color: 'white', bgcolor: 'gray', '&:hover': { bgcolor: 'darkgray' } }}>
@@ -478,4 +474,3 @@ export function CustomDialogFinishCheckOut({ handleFinishCheckout }) {
         </React.Fragment>
     );
 }
-    */

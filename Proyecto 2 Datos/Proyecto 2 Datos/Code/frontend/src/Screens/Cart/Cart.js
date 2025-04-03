@@ -9,6 +9,7 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import { useMediaQuery } from '@mui/material';
+import { CustomDialogFinishCheckOut } from '../../components/Dialog/CustomDialog';
 import './Cart.css';
 
 import { MdDelete } from "react-icons/md";
@@ -66,6 +67,10 @@ export default function Cart() {
   const [total, setTotal] = useState(0);
   const [itemCount, setItemCount] = useState(0);
   const [deletingIds, setDeletingIds] = useState([]);
+  const [message, setMessage] = useState({
+    title: '',
+    message: '',
+  });
 
   const isSmallScreen = useMediaQuery('(max-width:768px)');
 
@@ -87,7 +92,6 @@ export default function Cart() {
         setProducts(prevProducts => prevProducts.filter(product => product.id !== product_id));
         setDeletingIds(prev => prev.filter(id => id !== product_id));
   
-        // 🔥 Recalcular totales localmente en lugar de hacer otra llamada a la API
         const updatedProducts = products.filter(product => product.id !== product_id);
         const newSubtotal = updatedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
         const newTax = newSubtotal * TAX_RATE;
@@ -110,10 +114,6 @@ export default function Cart() {
 
   const handleFinishCheckout = async () => {
     try {
-      // Confirmación antes de finalizar
-      if (!window.confirm('¿Estás seguro de que deseas finalizar la orden?')) {
-        return;
-      }
   
       const response = await fetch(`http://localhost:8000/Cart?order_id=${orderID}`, {
         method: 'DELETE',
@@ -124,7 +124,12 @@ export default function Cart() {
   
       if (!response.ok) {
         const errorData = await response.json();
+        setMessage({
+          title: 'Error',
+          message: errorData.detail || 'Error al finalizar la orden',
+        });
         throw new Error(errorData.detail || 'Error al finalizar la orden');
+        
       }
   
       const data = await response.json();
@@ -136,8 +141,10 @@ export default function Cart() {
       setTotal(0);
       setItemCount(0);
   
-      // Mostrar mensaje de éxito
-      alert('Orden completada con éxito');
+      setMessage({
+        title: 'Order has been completed',
+        message: `Your order has been completed successfully.`,
+      });
   
     } catch (error) {
       console.error('Error al finalizar la orden:', error);
@@ -186,7 +193,6 @@ export default function Cart() {
   }, [orderID]); 
   
   if (loading) return <div className="loading-message">Loading cart...</div>;
-  if (error) return <div className="error-message">Error: {error}</div>;
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -280,14 +286,18 @@ export default function Cart() {
           </TableContainer>
         </div>
         <div className="checkout-button">
-          <Button 
+          {/*<Button 
             variant="contained" 
             onClick={handleFinishCheckout}
             size={isSmallScreen ? 'small' : 'medium'}
             fullWidth={isSmallScreen}
           >
             Finish Order
-          </Button>
+          </Button>*/}
+          <CustomDialogFinishCheckOut
+            handleCheckout={handleFinishCheckout}
+            Message={message}
+            />
         </div>
       </div>
     </ThemeProvider>

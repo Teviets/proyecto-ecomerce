@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // Crea el contexto de autenticación
 const AuthContext = createContext();
@@ -36,6 +37,8 @@ export function AuthProvider({ children }) {
     const [id, setID] = useState(getCookie('id') || ''); // Estado para el id
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [orderID, setOrderID] = useState(getCookie('orderID') || ''); // Estado para el orderID
+    const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const storedEmail = getCookie('email');
@@ -76,6 +79,10 @@ export function AuthProvider({ children }) {
         setID('');
         setOrderID('');
         setIsAuthenticated(false);
+
+        if (location.pathname === '/cart') {
+            navigate('/');
+        }
     };
 
     const updateOrderID = (orderID) => {
