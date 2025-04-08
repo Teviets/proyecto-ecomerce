@@ -6,6 +6,8 @@ from contextlib import contextmanager
 from fastapi.middleware.cors import CORSMiddleware
 import models, schemas, crud
 
+from Auth import get_current_user
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -29,8 +31,8 @@ def get_mongo():
 
 
 @app.post("/register")
-def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    return crud.create_user(db, user)
+def register_user(user: schemas.UserCreate, mongo= Depends(get_mongo),db: Session = Depends(get_db)):
+    return crud.create_user(db, mongo, user)
 
 @app.post("/login")
 def login_user(user: schemas.UserLogin, db: Session = Depends(get_db), mongo_db = Depends(get_mongo) ):
@@ -64,21 +66,23 @@ def checkout(cart: schemas.Cart, db: Session = Depends(get_db)):
 @app.post("/Cart")
 def add_to_cart(
     cart_item: schemas.CartItem,
+    current_user: models.User = Depends(get_current_user),
     mongo_db = Depends(get_mongo) 
 ):
     try:
-
         order_id = str(cart_item.order_id) if cart_item.order_id else None
-        return crud.add_to_cart(mongo_db, cart_item.product_id, cart_item.user_id, order_id)
+        return crud.add_to_cart(mongo_db, cart_item.product_id, current_user.id, order_id)
     except Exception as e:
         print(f"Error adding to cart: {e}")
         return {"error": str(e)}
+
     
 
 @app.get("/Cart")
 def get_full_cart(
     order_id: str,
     mongo_db = Depends(get_mongo),
+    current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     try:
@@ -91,6 +95,7 @@ def get_full_cart(
 def delete_item_cart(
     product_id: str = Query(..., description="ID del producto a eliminar"),
     order_id: str = Query(..., description="ID de la orden"),
+    current_user: schemas.UserResponse = Depends(get_current_user),
     mongo_db = Depends(get_mongo)
 ):
     try:
@@ -120,7 +125,8 @@ def delete_item_cart(
 @app.delete("/Cart")
 def delete_cart(
     order_id: str = Query(..., description="ID de la orden"),
-    mongo_db = Depends(get_mongo)
+    mongo_db = Depends(get_mongo),
+    current_user: schemas.UserResponse = Depends(get_current_user)
 ):
     try:
         return crud.delete_cart(mongo_db, order_id)

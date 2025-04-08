@@ -3,56 +3,137 @@ import models, schemas
 import uuid
 from bson import ObjectId
 from sqlalchemy.exc import IntegrityError
+from datetime import datetime, timedelta
+import jwt
+from fastapi import HTTPException
+from passlib.context import CryptContext
+from bson import ObjectId
 
-def create_user(db: Session, user: schemas.UserCreate):
-    # Verifica si el usuario ya existe
-    existing_user = db.query(models.User).filter(models.User.username == user.email).first()
+SECRET_KEY="ecommerceSECRETKEY"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60*24*30  
+
+def convert_object_ids(doc):
+    for key, value in doc.items():
+        if isinstance(value, ObjectId):
+            doc[key] = str(value)
+        elif isinstance(value, dict):
+            doc[key] = convert_object_ids(value)
+    return doc
+
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    expires_delta = expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": datetime.utcnow() + expires_delta})
+    encode_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encode_jwt
+
+def verify_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            return False
+        # Verifica expiración explícitamente
+        if datetime.utcnow() > datetime.fromtimestamp(payload["exp"]):
+            return False
+        return schemas.TokenData(username=username)
+    except jwt.PyJWTError:
+        return False
     
-    if existing_user:
-        return {"error": "El usuario ya existe"}
+def update_expiration(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            return False
+        # Actualiza la expiración
+        expires_delta = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        payload["exp"] = datetime.utcnow() + expires_delta
+        new_token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+        return new_token
+    except jwt.PyJWTError:
+        return False
     
-    # Crea el nuevo usuario
-    db_user = models.User(username=user.email, password=user.password)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def create_user(db: Session, mongo, user: schemas.UserCreate):
+    # 1. Verificar si el usuario ya existe en MongoDB
+    existing_user_mongo = mongo["Users"].find_one({"username": user.email})
+    if existing_user_mongo:
+        raise HTTPException(status_code=400, detail="El usuario ya existe en MongoDB")
+
+    # 2. Crear hash de la contraseña
+    hashed_password = pwd_context.hash(user.password)
 
     try:
+        # 3. Crear usuario en PostgreSQL
+        db_user = models.User(username=user.email, password=hashed_password)
         db.add(db_user)
-        print(f"User to be added: {db_user}")
         db.commit()
-        print(f"User added: {db_user}")
         db.refresh(db_user)
-        print(f"User refreshed: {db_user}")
-        return db_user
+
+        # 4. Crear usuario en MongoDB
+        mongo["Users"].insert_one({
+            "username": user.email,
+            "password": hashed_password,
+            "user_id": db_user.id,
+            "created_at": datetime.utcnow(),
+            "last_login": None,
+            "access_token": None,
+            "user_id": db_user.id  # Referencia al ID de PostgreSQL
+        })
+
+        return {
+            "id": db_user.id,
+            "username": db_user.username,
+            "message": "Usuario creado exitosamente"
+        }
+
     except IntegrityError:
         db.rollback()
-        print("IntegrityError: El usuario ya existe")
-        return {"error": "Error de integridad. El usuario ya existe."}
+        raise HTTPException(status_code=400, detail="El usuario ya existe en PostgreSQL")
     except Exception as e:
         db.rollback()
-        print(f"Error al agregar el usuario: {e}")
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=f"Error al crear el usuario: {str(e)}")
 
 
 def authenticate_user(db: Session, mongo_db, user: schemas.UserLogin):
-    response = db.query(models.User).filter(
-        models.User.username == user.username, 
-        models.User.password == user.password
-    ).first()
+    db_user_mongo = mongo_db["Users"].find_one({"username": user.username})
+    
+    if not db_user_mongo:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    
+    if not pwd_context.verify(user.password, db_user_mongo["password"]):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    access_token = create_access_token(data={"sub": user.username})
+    updated_user = mongo_db["Users"].find_one_and_update(
+        {"username": user.username},
+        {"$set": {
+            "last_login": datetime.utcnow(),
+            "access_token": access_token
+        }},
+        return_document=True
+    )
+    print(f"Updated user: {updated_user}")
 
-    if not response:
-        return {"error": "Invalid username or password"}
+    order = mongo_db["Cart"].find_one(
+        {"user_id": db_user_mongo["user_id"]},
+        {"_id": 0, "order": 1}
+    )
+    print(f"Order found: {order}")
 
-    order = mongo_db["Cart"].find_one({"user_id": response.id})
-    print(order)
-
-    # Si existe una orden, convertir el _id de ObjectId a string
-    if order and "_id" in order:
-        order["_id"] = str(order["_id"])
-
-    finalResponse = {
-        "user": response,
-        "order": order  # Ahora el _id es serializable
+    final_response = {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": db_user_mongo["user_id"],
+            "username": db_user_mongo["username"],
+        },
+        "order_id": order if order else None
     }
-    return finalResponse
+
+    return final_response
 
 
 
@@ -69,7 +150,7 @@ def create_product(db: Session, product: schemas.ProductCreate):
 
 def get_products(
     db: Session, 
-    skip: int = 0,  # Número de página (0-based)
+    skip: int = 0, 
     limit: int = 25, 
     order: str = "id", 
     name: str = None,
@@ -116,7 +197,7 @@ def add_to_cart(mongo_db, product_id: schemas.ProductToCart, user_id: int, order
         print(f"Product dict: {product_dict}")
 
         # Buscar si ya existe un carrito activo para este usuario y orden
-        cart = mongo_db["Cart"].find_one({"order": order_id, "user_id": user_id})
+        cart = mongo_db["Cart"].find_one({"order": order_id})
         print(f"Cart found: {cart}")
 
         if cart:

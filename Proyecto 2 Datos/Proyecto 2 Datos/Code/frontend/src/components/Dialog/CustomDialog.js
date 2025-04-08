@@ -23,7 +23,7 @@ export function CustomDialog({ isLogin }) {
     const [open, setOpen] = React.useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
-    const { login, id } = useAuth();
+    const { login } = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
@@ -49,13 +49,15 @@ export function CustomDialog({ isLogin }) {
       
           if (response.ok) {
             const data = await response.json();
+            console.log("data", data);
+            console.log("User ID", data.user.id);
             if (!data["order_id"]) {
               data["order_id"] = {
                 order: ''
               };
             }
             
-            login(data.user.username, data.user.id, data["order_id"]["order"]);
+            login(data.user.username, data.user.id, data["order_id"]["order"], data.access_token);
             handleClose();
             
           } else {
@@ -191,7 +193,7 @@ export function CustomDialogAddToCart({ product }) {
     const [selectedQuantity, setSelectedQuantity] = useState(1);
 
 
-    const { isAuthenticated, id, orderID, login, updateOrderID } = useAuth();
+    const { isAuthenticated, id, orderID, login, updateOrderID, token } = useAuth();
 
     const handleTogglePassword = () => {
         setShowPassword(!showPassword);
@@ -216,17 +218,15 @@ export function CustomDialogAddToCart({ product }) {
           if (response.ok) {
             const data = await response.json();
             console.log("data", data);
+            console.log("User ID", data.user.id);
             if (!data["order_id"]) {
               data["order_id"] = {
                 order: ''
               };
             }
             
-            login(data.user.username, data.user.id, data["order_id"]["order"]);
+            login(data.user.username, data.user.id, data["order_id"]["order"], data.access_token);
             handleClose();
-
-            console.log(orderID);
-            console.log(data["order_id"]["order"]);
             
           } else {
             const errorData = await response.json();
@@ -243,26 +243,27 @@ export function CustomDialogAddToCart({ product }) {
 
         const payload = {
             product_id: product,
-            user_id: Number(id),
+            user_id: parseInt(id),
             order_id: orderID || null
         };
+
+        console.log("Payload", payload);
 
         // Verificar que el ID del producto, usuario y orden sean válidos
         if (typeof product.id !== 'number' || isNaN(product.id)) {
             alert("Invalid product_id");
             return;
         }
-    
-        if (isNaN(id) ) {
-            alert("Invalid user_id");
-            return;
-        }
         
     
         try {
+            console.log("Token", token);
             const response = await fetch("http://localhost:8000/Cart", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify(payload),
             });
     

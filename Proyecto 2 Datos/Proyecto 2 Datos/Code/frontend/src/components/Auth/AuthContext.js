@@ -36,6 +36,7 @@ export function AuthProvider({ children }) {
     const [email, setEmail] = useState(getCookie('email') || ''); // Estado para el email
     const [id, setID] = useState(getCookie('id') || ''); // Estado para el id
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [token, setToken] = useState(getCookie('token') || ''); // Estado para el token
     const [orderID, setOrderID] = useState(getCookie('orderID') || ''); // Estado para el orderID
     const navigate = useNavigate();
     const location = useLocation();
@@ -44,11 +45,13 @@ export function AuthProvider({ children }) {
         const storedEmail = getCookie('email');
         const storedID = getCookie('id');
         const stored = getCookie('orderID');
+        const sotredToken = getCookie('token');
     
         if (storedEmail && storedID && stored) {
             setEmail(storedEmail);
             setID(storedID);
             setOrderID(stored);
+            setToken(sotredToken);
             setIsAuthenticated(true);
         } else {
             setIsAuthenticated(false);
@@ -56,14 +59,15 @@ export function AuthProvider({ children }) {
     }, []);
     
 
-    const login = (userEmail, userId, order_id) => {
+    const login = (userEmail, userId, order_id, token) => {
         const expiryDate = new Date();
         expiryDate.setMonth(expiryDate.getMonth() + 1);
       
         document.cookie = `email=${userEmail}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
         document.cookie = `id=${userId}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
         document.cookie = `orderID=${order_id}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
-      
+        document.cookie = `token=${token}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
+        setToken(token);
         setEmail(userEmail);
         setID(userId);
         setOrderID(order_id);
@@ -74,6 +78,8 @@ export function AuthProvider({ children }) {
         document.cookie = 'email=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
         document.cookie = 'id=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
         document.cookie = 'orderID=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+        setToken('');
     
         setEmail('');
         setID('');
@@ -101,6 +107,7 @@ export function AuthProvider({ children }) {
             email, 
             id, 
             orderID,
+            token,
             login, 
             logout,
             updateOrderID

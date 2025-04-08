@@ -66,6 +66,6 @@ class ProductToCart(BaseModel):
 class CartItem(BaseModel):
     product_id: ProductToCart
     user_id: int
-    order_id: Optional[UUID4] = None  # Order_id es opcional
+    order_id: Optional[str] = None  
 
 

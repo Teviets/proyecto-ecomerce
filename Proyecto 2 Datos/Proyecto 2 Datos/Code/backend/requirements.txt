@@ -3,3 +3,6 @@ uvicorn
 sqlalchemy
 psycopg2-binary
 pymongo
+PyJWT
+python-jose[cryptography]
+passlib

@@ -74,14 +74,20 @@ export default function Cart() {
 
   const isSmallScreen = useMediaQuery('(max-width:768px)');
 
-  const { orderID } = useAuth();
+  const { orderID, token, id } = useAuth();
 
   const handleDeleteItem = async (product_id) => {
     try {
       setDeletingIds(prev => [...prev, product_id]);
   
       const url = `http://localhost:8000/ItemCart?order_id=${orderID}&product_id=${product_id}`;
-      const response = await fetch(url, { method: 'DELETE', headers: { 'Content-Type': 'application/json' } });
+      const response = await fetch(url, { 
+        method: 'DELETE', 
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        } 
+      });
   
       if (!response.ok) {
         const errorData = await response.json();
@@ -119,6 +125,7 @@ export default function Cart() {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
       });
   
@@ -159,7 +166,14 @@ export default function Cart() {
         return;
       }
 
-      const response = await fetch(`http://localhost:8000/Cart?order_id=${orderID}`);
+      const response = await fetch(`http://localhost:8000/Cart?order_id=${orderID}`,{
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          }
+        }
+      );
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -189,6 +203,7 @@ export default function Cart() {
   
   // Corrige el useEffect para evitar bucles
   useEffect(() => {
+    console.log("Este es el id ", id);
     fetchCartData();
   }, [orderID]); 
   
